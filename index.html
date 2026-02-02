@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ক্রীড়া প্রতিযোগিতা ম্যানেজমেন্ট</title>
+    <!-- ফন্ট ও স্টাইল -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root { --primary-color: #00695c; --secondary-color: #004d40; --accent-color: #ff8f00; --bg-color: #eceff1; --text-color: #263238; --white: #ffffff; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: var(--bg-color); margin: 0; padding: 5px; color: var(--text-color); }
+        .container { max-width: 100%; margin: 0 auto; background: var(--white); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); min-height: 95vh; padding-bottom: 60px; }
+        .tabs { display: flex; background: #b2dfdb; position: sticky; top: 0; z-index: 10; overflow-x: auto; white-space: nowrap; border-bottom: 2px solid var(--primary-color); }
+        .tab-btn { flex: 1; min-width: 90px; padding: 12px 5px; border: none; background: transparent; font-size: 14px; font-weight: 600; font-family: 'Hind Siliguri', sans-serif; color: #444; }
+        .tab-btn.active { background: var(--primary-color); color: var(--white); }
+        .tab-content { display: none; padding: 10px; }
+        .tab-content.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 15px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; font-family: 'Hind Siliguri', sans-serif; font-size: 16px; }
+        .btn-submit { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: 600; margin-top: 10px; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border-bottom: 1px solid #eee; padding: 10px 5px; text-align: left; vertical-align: middle; }
+        th { background-color: var(--primary-color); color: white; font-size: 14px; }
+        td { font-size: 15px; }
+        .btn-sm { padding: 5px 10px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 13px; margin-right: 3px; }
+        .btn-out { background: #d32f2f; }
+        .btn-undo { background: #607d8b; }
+        .btn-replay { background: #ff5722; color: white; } 
+        .btn-edit { background: #ff9800; color: white; } 
+        .btn-1st { background: #ffd700; color: black; }
+        .btn-2nd { background: #c0c0c0; color: black; }
+        .btn-3rd { background: #cd7f32; color: white; }
+        .btn-del { background: #d32f2f; color: white; }
+        .btn-edit-name { background: #1976d2; color: white; }
+        .player-list-section { margin-bottom: 30px; border-bottom: 2px dashed #ccc; padding-bottom: 20px; }
+        .player-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; background: #fff; border-radius: 4px; margin-bottom: 5px; }
+        .player-name { font-size: 16px; font-weight: 500; cursor: pointer; color: var(--primary-color); text-decoration: underline; }
+        .search-box { position: relative; margin-bottom: 10px; }
+        .search-box input { padding-left: 30px; }
+        .search-icon { position: absolute; left: 8px; top: 10px; color: #888; }
+        #suggestions { border: 1px solid #ddd; display: none; background: white; position: absolute; width: 95%; z-index: 1000; border-radius: 0 0 5px 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #suggestions div { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 16px; }
+        #suggestions div:hover { background-color: #f1f1f1; color: var(--primary-color); }
+        #timerModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        .timer-display { font-size: clamp(30px, 11vw, 55px); font-weight: bold; font-family: monospace; color: #00e676; margin: 15px 0; text-shadow: 0 0 10px rgba(0,230,118,0.5); width: 100%; text-align: center; white-space: nowrap; overflow: hidden; }
+        #loginModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .loader { display: none; text-align: center; color: var(--primary-color); }
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .game-checkbox { background: #fff; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; align-items: center; font-size: 14px; }
+        .control-panel { width: 90%; text-align: center; }
+        .input-score-box { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .art-extra-fields { background: #e3f2fd; padding: 10px; border-radius: 5px; border: 1px solid #90caf9; margin-top: 10px; display: none; }
+        .art-slip-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; display: none; justify-content: center; align-items: center; }
+        .slip-content { background: white; padding: 20px; border-radius: 8px; width: 95%; max-width: 400px; text-align: center; border: 2px solid var(--primary-color); }
+        .slip-table td { border: 1px solid #ddd; padding: 5px; text-align: left; font-size: 14px; }
+        .slip-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .art-settings-row { background: #f9fbe7; border: 1px solid #dce775; padding: 10px; margin-bottom: 5px; border-radius: 5px; }
+        .photo-upload-label { display: inline-block; padding: 8px; background: #2196f3; color: white; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; text-align: center; }
+        .photo-upload-label:active { background: #1976d2; }
+        #certTemplate { display: none; width: 800px; height: 600px; padding: 40px; background: #fff; border: 20px double #DAA520; text-align: center; position: fixed; top: -9999px; left: -9999px; font-family: 'Cinzel', serif; color: #333; }
+        .cert-header { font-size: 50px; color: #DAA520; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .cert-sub { font-size: 20px; margin-bottom: 40px; color: #555; }
+        .cert-name { font-family: 'Great Vibes', cursive; font-size: 60px; color: #000; border-bottom: 2px solid #DAA520; display: inline-block; min-width: 400px; margin-bottom: 20px; }
+        .cert-body { font-size: 22px; line-height: 1.6; margin-bottom: 50px; }
+        .cert-footer { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 50px; }
+        .cert-sign { border-top: 1px solid #333; width: 200px; padding-top: 10px; font-size: 18px; }
+        .rank-badge { position: absolute; top: 40px; right: 50px; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+<div id="loginModal">
+    <div style="background:white; padding:30px; border-radius:10px; width:85%; max-width:300px; text-align:center;">
+        <h2 style="color:var(--primary-color);">লগিন</h2>
+        <input type="number" id="loginPin" placeholder="PIN" style="text-align:center; font-size:24px; letter-spacing:5px;" inputmode="numeric">
+        <button class="btn-submit" onclick="checkLogin()">প্রবেশ</button>
+        <p style="font-size:12px; margin-top:10px; color:#666;">xxxx (Admin) | 1234 (Staff)</p>
+    </div>
+</div>
+
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:400px;">
+        <h3 style="margin-top:0; color:var(--primary-color);">তথ্য সংশোধন</h3>
+        <label>নাম:</label>
+        <input type="text" id="editNameInput" style="margin-bottom:15px;">
+        <label>খেলা নির্বাচন করুন:</label>
+        <div class="games-grid" id="editGamesContainer"></div>
+        <div style="margin-top:20px; text-align:right;">
+            <button onclick="document.getElementById('editModal').style.display='none'" style="padding:8px 15px; background:#f44336; color:white; border:none; border-radius:4px; cursor:pointer;">বাতিল</button>
+            <button onclick="saveEditData()" style="padding:8px 15px; background:#4caf50; color:white; border:none; border-radius:4px; cursor:pointer;">সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<div id="artSlipModal" class="art-slip-modal">
+    <div class="slip-content">
+        <div id="slipToPrint" style="padding:15px; background:white; position:relative;">
+            <div style="position: absolute; top: 10px; right: 10px;">
+                <img id="slipQrCode" src="" alt="QR" style="width: 60px; height: 60px;">
+            </div>
+            <h3 style="margin:0; color:var(--primary-color); border-bottom: 2px solid #000; padding-bottom:5px; padding-right: 70px;">অঙ্কন প্রতিযোগীতা</h3>
+            <p style="font-size:12px; margin:5px 0;">রেজিস্ট্রেশন স্লিপ</p>
+            <div style="text-align: right; font-size: 10px; margin-bottom: 5px;">
+                তারিখ: <span id="slipDate"></span> | সময়: <span id="slipTime"></span>
+            </div>
+            <table class="slip-table">
+                <tr><td><b>রেজি নং:</b></td><td id="slipRegNo" style="font-weight:bold;"></td></tr>
+                <tr><td><b>নাম:</b></td><td id="slipName"></td></tr>
+                <tr><td><b>শ্রেণী:</b></td><td id="slipClass"></td></tr>
+                <tr><td><b>বিভাগ:</b></td><td id="slipGroup"></td></tr>
+                <tr><td><b>বিষয়:</b></td><td id="slipConcept"></td></tr>
+                <tr><td><b>ঠিকানা:</b></td><td id="slipAddress"></td></tr>
+            </table>
+            <div style="font-size:10px; text-align:center; margin-top:10px;">ক্রীড়া প্রতিযোগিতা কমিটি</div>
+        </div>
+        <button class="btn-submit" onclick="downloadSlip()" style="background:#00897b;">📥 ডাউনলোড স্লিপ</button>
+        <button class="btn-submit" onclick="closeSlipModal()" style="background:#546e7a; margin-top:5px;">বন্ধ করুন</button>
+    </div>
+</div>
+
+<div id="certTemplate">
+    <div id="certBadge" class="rank-badge">1st</div>
+    <div style="border: 2px solid #DAA520; height: 100%; padding: 20px; display: flex; flex-direction: column; justify-content: center;">
+        <div class="cert-header">Certificate of Achievement</div>
+        <div class="cert-sub">This certificate is proudly presented to</div>
+        <div id="certName" class="cert-name">Player Name</div>
+        <div class="cert-body">
+            For securing <b id="certRankText" style="color:#DAA520;">1st Position</b> in the <br>
+            <b>Art Competition (Group: <span id="certGroup">K</span>)</b><br>
+            Class: <span id="certClass">5</span>
+        </div>
+        <div class="cert-footer">
+            <div class="cert-sign">Secretary</div>
+            <div class="cert-sign">President</div>
+        </div>
+    </div>
+</div>
+
+<div id="timerModal">
+    <button style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; font-size:30px;" onclick="closeTimer()">✕</button>
+    <h2 id="timerPlayerName" style="color:#ddd; margin-bottom:5px;">Player</h2>
+    <div style="font-size:14px; color:#aaa;" id="timerGameLabel">Game Name</div>
+    <div class="timer-display" id="timerDisplay">00:00:00.00</div>
+    <div class="timer-controls" id="mainControls">
+        <button onclick="startTimer()" id="btnStart" style="background:#00e676; color:#000;">শুরু</button>
+        <button onclick="pauseTimer()" id="btnPause" style="background:#ffeb3b; color:#000; display:none;">থামুন</button>
+    </div>
+    <div class="control-panel" id="pausedControls" style="display:none;">
+        <p style="color:#ffeb3b; font-weight:bold;">খেলা স্থগিত আছে</p>
+        <div class="timer-controls" style="justify-content:center;">
+            <button onclick="resumeTimer()" style="background:#00e676; color:black;">চালিয়ে যান</button>
+            <button onclick="resetTimer()" style="background:#f44336; color:white;">রিসেট</button>
+        </div>
+        <div class="input-score-box">
+            <div id="waterInputDiv" style="display:none; margin-bottom:10px;">
+                <label style="color:#4fc3f7;">জলের পরিমাণ (ml)</label>
+                <input type="number" id="waterAmount" placeholder="ml" style="text-align:center; font-size:20px; width:100px;">
+            </div>
+            <label id="scoreInputLabel" style="color:white; display:block; margin-bottom:5px;">ফলাফল লিখুন</label>
+            <input type="text" id="finalScoreInput" style="text-align:center; font-size:24px; width:120px; padding:5px; border-radius:5px; border:none;">
+            <button class="btn-submit" style="background:#29b6f6; color:black; margin-top:15px;" onclick="saveTimerData()">ফলাফল সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-reg" onclick="switchTab('registration')">নাম নথিভুক্ত</button>
+        <button class="tab-btn" id="tab-mgmt" onclick="switchTab('management')">খেলা পরিচালনা</button>
+        <button class="tab-btn" id="tab-res" onclick="switchTab('results')">ফলাফল</button>
+        <button class="tab-btn" id="tab-set" onclick="switchTab('settings')">সেটিং</button>
+    </div>
+
+    <div id="registration" class="tab-content active">
+        <div class="form-group"><input type="date" id="regDate"></div>
+        <div class="form-group">
+            <input type="text" id="nameInput" placeholder="নাম লিখুন (Ex: Rohit -> রোহিত)" autocomplete="off">
+            <div id="suggestions"></div>
+        </div>
+        <div class="games-grid">
+            <label class="game-checkbox"><input type="checkbox" value="hari_bhanga"> হাড়িভাঙ্গা</label>
+            <label class="game-checkbox"><input type="checkbox" value="shankha"> শঙ্খবাজানো</label>
+            <label class="game-checkbox"><input type="checkbox" value="glass_circle"> গেলাস সার্কেল</label>
+            <label class="game-checkbox"><input type="checkbox" value="phuchka"> ফুচকা খাওয়া</label>
+            <label class="game-checkbox"><input type="checkbox" value="sajo"> যেমন খুশি সাঁজো</label>
+            <label class="game-checkbox"><input type="checkbox" value="musical_chair"> মিউজিক্যাল চেয়ার</label>
+            <label class="game-checkbox"><input type="checkbox" value="candle"> মোমবাতি জ্বালানো</label>
+            <label class="game-checkbox" style="background:#e1bee7; font-weight:bold;"><input type="checkbox" value="art_comp" onchange="toggleArtFields(this)"> অঙ্কন প্রতিযোগীতা</label>
+        </div>
+        <div id="artExtraFields" class="art-extra-fields">
+            <h4 style="margin-top:0; color:var(--primary-color);">অঙ্কন তথ্য:</h4>
+            <div class="form-group">
+                <select id="artClassSelect" onchange="autoFillArtDetails()">
+                    <option value="">-- শ্রেণী নির্বাচন করুন --</option>
+                </select>
+            </div>
+            <div class="form-group"><input type="text" id="artAddress" placeholder="ঠিকানা"></div>
+            <div class="form-group"><input type="number" id="artMobile" placeholder="মোবাইল নং"></div>
+            <div style="background:white; padding:5px; border-radius:4px; font-size:14px;">
+                <span style="color:gray;">বিভাগ:</span> <b id="artGroupDisplay">-</b><br>
+                <span style="color:gray;">কনসেপ্ট:</span> <b id="artConceptDisplay">-</b>
+            </div>
+        </div>
+        <div id="regLoader" class="loader">সেভ হচ্ছে...</div>
+        <button class="btn-submit" onclick="register()">জমা দিন</button>
+    </div>
+
+    <div id="management" class="tab-content">
+        <select id="mgmtGameSelector" onchange="renderMgmt()">
+            <option value="">-- খেলা বাছুন --</option>
+            <option value="hari_bhanga">হাড়িভাঙ্গা</option>
+            <option value="shankha">শঙ্খবাজানো</option>
+            <option value="glass_circle">গেলাস সার্কেল</option>
+            <option value="phuchka">ফুচকা খাওয়া</option>
+            <option value="sajo">যেমন খুশি সাঁজো</option>
+            <option value="musical_chair">মিউজিক্যাল চেয়ার</option>
+            <option value="candle">মোমবাতি জ্বালানো</option>
+            <option value="art_comp">অঙ্কন প্রতিযোগীতা</option>
+        </select>
+        <div id="artSubFilterDiv" style="display:none; margin-top:10px;">
+            <select id="artGroupFilter" onchange="renderMgmt()">
+                <option value="all">সব বিভাগ</option>
+                <option value="group_k">বিভাগ-ক</option>
+                <option value="group_kh">বিভাগ-খ</option>
+                <option value="group_g">বিভাগ-গ</option>
+                <option value="group_gh">বিভাগ-ঘ</option>
+                <option value="group_ng">বিভাগ-ঙ</option>
+                <option value="group_ch">বিভাগ-চ</option>
+                <option value="group_chh">বিভাগ-ছ</option>
+                <option value="group_j">বিভাগ-জ</option>
+            </select>
+        </div>
+        <div class="search-box" style="margin-top:10px;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="mgmtSearch" placeholder="খুঁজুন..." onkeyup="renderMgmt()">
+        </div>
+        <div id="mgmtArea"></div>
+    </div>
+
+    <div id="results" class="tab-content">
+        <select id="resGameSelector" onchange="renderResults()">
+            <option value="">-- ফলাফল দেখুন --</option>
+            <option value="hari_bhanga">হাড়িভাঙ্গা</option>
+            <option value="shankha">শঙ্খবাজানো</option>
+            <option value="glass_circle">গেলাস সার্কেল</option>
+            <option value="phuchka">ফুচকা খাওয়া</option>
+            <option value="sajo">যেমন খুশি সাঁজো</option>
+            <option value="musical_chair">মিউজিক্যাল চেয়ার</option>
+            <option value="candle">মোমবাতি জ্বালানো</option>
+            <option value="art_comp">অঙ্কন প্রতিযোগীতা</option>
+        </select>
+        <div id="artResSubFilterDiv" style="display:none; margin-top:10px;">
+             <select id="artResGroupFilter" onchange="renderResults()">
+                <option value="all">সব বিভাগ</option>
+                <option value="group_k">বিভাগ-ক</option>
+                <option value="group_kh">বিভাগ-খ</option>
+                <option value="group_g">বিভাগ-গ</option>
+                <option value="group_gh">বিভাগ-ঘ</option>
+                <option value="group_ng">বিভাগ-ঙ</option>
+                <option value="group_ch">বিভাগ-চ</option>
+                <option value="group_chh">বিভাগ-ছ</option>
+                <option value="group_j">বিভাগ-জ</option>
+             </select>
+        </div>
+        <div id="resTitle" style="text-align:center; font-weight:bold; margin:10px 0; color:var(--primary-color);"></div>
+        <table style="width:100%">
+            <thead><tr><th>ক্রম</th><th>নাম</th><th>ফলাফল</th></tr></thead>
+            <tbody id="resBody"></tbody>
+        </table>
+        <button onclick="window.print()" style="float:right; margin-top:10px; padding:5px; background:#607d8b; color:white; border:none;">Print</button>
+    </div>
+
+    <div id="settings" class="tab-content">
+        <div class="player-list-section">
+            <h3>খেলোয়াড় সংশোধন ও বাতিল</h3>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="settingSearch" placeholder="নাম খুঁজুন..." onkeyup="renderPlayerList()">
+            </div>
+            <div id="playerMgmtList" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 15px;">
+            <button class="btn-submit" style="background: #00897b; margin-bottom: 10px;" onclick="manualRefresh(this)">🔄 ডাটা রিফ্রেশ</button>
+            <button class="btn-submit" style="background: #c62828;" onclick="doLogout()">🚪 লগআউট</button>
+        </div>
+        <h3 style="border-top:2px solid #ccc; padding-top:10px; margin-top:20px;">🎨 অঙ্কন কনফিগারেশন</h3>
+        <p style="font-size:12px; color:gray;">প্রতিটি বিভাগের জন্য ক্লাস রেঞ্জ এবং বিষয় ঠিক করুন।</p>
+        <div id="artSettingsContainer"></div>
+        <button class="btn-submit" style="background:#795548; margin-bottom:20px;" onclick="saveArtConfig()">অঙ্কন সেটিং সেভ করুন</button>
+        <h3>খেলার কনফিগারেশন</h3>
+        <div id="settingsList"></div>
+        <button class="btn-submit" onclick="saveConfig()">সেটিং সেভ করুন</button>
+    </div>
+</div>
+<div id="playerDetailsModal" class="art-slip-modal">
+    <div class="slip-content" style="text-align:left; position:relative;">
+        <button onclick="document.getElementById('playerDetailsModal').style.display='none'" style="position:absolute; top:10px; right:15px; border:none; background:transparent; font-size:20px; cursor:pointer;">✕</button>
+        
+        <h3 style="color:var(--primary-color); border-bottom:1px solid #ddd; padding-bottom:5px; margin-top:0;">খেলোয়াড় তথ্য</h3>
+        
+        <table style="width:100%; font-size:15px;">
+            <tr><td style="width:100px; font-weight:bold; color:#666;">রেজি নং:</td><td id="detId" style="font-weight:bold;"></td></tr>
+            <tr><td style="font-weight:bold; color:#666;">নাম:</td><td id="detName"></td></tr>
+            <tr><td style="font-weight:bold; color:#666;">মোবাইল:</td><td><a id="detMobile" href="" style="text-decoration:none; color:#2196f3;"></a></td></tr>
+            <tr><td style="font-weight:bold; color:#666;">ঠিকানা:</td><td id="detAddress"></td></tr>
+            <tr><td style="font-weight:bold; color:#666;">ক্লাস:</td><td id="detClass"></td></tr>
+            <tr><td style="font-weight:bold; color:#666;">বিভাগ:</td><td id="detGroup"></td></tr>
+            <tr>
+                <td style="font-weight:bold; color:#666;">অঙ্কন বিষয়:</td>
+                <td>
+                    <span id="detConcept"></span> 
+                    <span id="detImgIcon" style="cursor:pointer; font-size:18px; margin-left:10px;" title="ছবি দেখুন">👁️</span>
+                </td>
+            </tr>
+            <tr><td style="font-weight:bold; color:#666;">স্ট্যাটাস:</td><td id="detStatus" style="font-weight:bold; color:var(--accent-color);"></td></tr>
+        </table>
+    </div>
+</div>
+
+<div id="imgPreviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:6000; flex-direction:column; justify-content:center; align-items:center;">
+    <div style="position:relative; max-width:90%; max-height:80%;">
+        <img id="fullSizeImg" src="" style="max-width:100%; max-height:80vh; border:2px solid white; border-radius:5px;">
+        <button onclick="document.getElementById('imgPreviewModal').style.display='none'" style="position:absolute; top:-40px; right:0; background:none; border:none; color:white; font-size:30px; cursor:pointer;">✕</button>
+    </div>
+    <div style="margin-top:20px; display:flex; gap:15px;">
+        <a id="downloadImgBtn" href="" download="Art_Image" class="btn-submit" style="background:#4caf50; padding:10px 20px; text-decoration:none; width:auto;">⬇️ ডাউনলোড</a>
+        <button id="deleteImgBtn" class="btn-submit" style="background:#f44336; padding:10px 20px; width:auto;">🗑️ ডিলিট</button>
+    </div>
+</div>
+<script>
+    // ******************************************************
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzemcbN-bUKYjMWnYCs6WLavKsJIWsWIX9ZCSo3viSgELp14favmttcfNyhk1KNdeNhcg/exec";
+    // ******************************************************
+
+    // --- Safe Storage Wrapper to handle SecurityError ---
+    const SafeStorage = (function() {
+        try {
+            const ls = window.localStorage;
+            const x = '__storage_test__';
+            ls.setItem(x, x);
+            ls.removeItem(x);
+            return ls;
+        } catch (e) {
+            return {
+                _data: {},
+                getItem: function(k) { return this._data.hasOwnProperty(k) ? this._data[k] : null; },
+                setItem: function(k, v) { this._data[k] = String(v); },
+                removeItem: function(k) { delete this._data[k]; },
+                clear: function() { this._data = {}; }
+            };
+        }
+    })();
+
+    const SafeSession = (function() {
+        try {
+            const ss = window.sessionStorage;
+            const x = '__storage_test__';
+            ss.setItem(x, x);
+            ss.removeItem(x);
+            return ss;
+        } catch (e) {
+            return {
+                _data: {},
+                getItem: function(k) { return this._data.hasOwnProperty(k) ? this._data[k] : null; },
+                setItem: function(k, v) { this._data[k] = String(v); },
+                removeItem: function(k) { delete this._data[k]; },
+                clear: function() { this._data = {}; }
+            };
+        }
+    })();
+
+    let participants = [];
+    const CLASS_LIST = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'Graduate'];
+    
+    // --- কাস্টম বাংলা ডিকশনারি ---
+    const bengaliSurnameDictionary = {
+        "shaw": "সাউ", "roy": "রায়", "de": "দে", "dey": "দে", "dutta": "দত্ত", "bose": "বসু",
+        "ghosh": "ঘোষ", "mitra": "মিত্র", "das": "দাস", "chakraborty": "চক্রবর্তী",
+        "banerjee": "ব্যানার্জী", "bandyopadhyay": "বন্দ্যোপাধ্যায়", "chatterjee": "চ্যাটার্জী",
+        "mukherjee": "মুখার্জী", "ganguly": "গাঙ্গুলী", "mondal": "মন্ডল", "biswas": "বিশ্বাস",
+        "saha": "সাহা", "paul": "পাল", "pal": "পাল", "majumdar": "মজুমদার", "sarkar": "সরকার",
+        "mishra": "মিশ্র", "gupta": "গুপ্ত", "sen": "সেন", "nandy": "নন্দী", "kundu": "কুন্ডু",
+        "basu": "বসু", "bhowmik": "ভৌমিক", "chowdhury": "চৌধুরী", "sheikh": "সেখ", "islam": "ইসলাম",
+        "khatun": "খাতুন", "begum": "বেগম", "rahman": "রহমান", "ali": "আলী", "ahmed": "আহমেদ",
+        "hossain": "হোসেন", "khan": "খান", "sing": "সিং", "singh": "সিং", "sharma": "শর্মা",
+        "yadav": "যাদব", "halder": "হালদার", "pramanik": "প্রামানিক", "patra": "পাত্র", "bag": "বাগ",
+        "mal": "মাল", "mahato": "মাহাতো", "ansari": "আনসারী", "mollah": "মোল্লা", "gazi": "গাজী"
+    };
+
+    let artConfig = {
+        'group_k': { label: 'বিভাগ-ক', start: 'Nursery', end: 'UKG', concept: 'প্রাকৃতিক দৃশ্য' },
+        'group_kh': { label: 'বিভাগ-খ', start: '1', end: '2', concept: 'গ্রামের মেলা' },
+        'group_g': { label: 'বিভাগ-গ', start: '3', end: '4', concept: 'মুক্তিযুদ্ধ' },
+        'group_gh': { label: 'বিভাগ-ঘ', start: '5', end: '6', concept: 'শীতের সকাল' },
+        'group_ng': { label: 'বিভাগ-ঙ', start: '7', end: '8', concept: 'বন্যা' },
+        'group_ch': { label: 'বিভাগ-চ', start: '9', end: '10', concept: 'রক্তদান' },
+        'group_chh': { label: 'বিভাগ-ছ', start: '11', end: '12', concept: 'বৃক্ষরোপণ' },
+        'group_j': { label: 'বিভাগ-জ', start: 'Graduate', end: 'Graduate', concept: 'উন্মুক্ত' }
+    };
+    if(SafeStorage.getItem('artConfig_v1')) artConfig = JSON.parse(SafeStorage.getItem('artConfig_v1'));
+
+    let gameConfig = {
+        'hari_bhanga': { label: 'হাড়িভাঙ্গা', type: 'manual', unit: 'সেমি', sort: 'low', status: 'active' },
+        'shankha': { label: 'শঙ্খবাজানো', type: 'open', unit: 'মিলি সেকেন্ড', sort: 'high', status: 'active' },
+        'glass_circle': { label: 'গেলাস সার্কেল', type: 'open', unit: 'মিলি সেকেন্ড', sort: 'low', status: 'active' },
+        'phuchka': { label: 'ফুচকা খাওয়া', type: 'fixed', duration: 60, unit: 'টি', sort: 'high', status: 'active' },
+        'candle': { label: 'মোমবাতি জ্বালানো', type: 'manual', unit: 'টি', sort: 'high', status: 'active' },
+        'sajo': { label: 'যেমন খুশি সাঁজো', type: 'manual', unit: 'পয়েন্ট', sort: 'manual', status: 'active' },
+        'musical_chair': { label: 'মিউজিক্যাল চেয়ার', type: 'manual', unit: '', sort: 'manual', status: 'active' },
+        'art_comp': { label: 'অঙ্কন প্রতিযোগীতা', type: 'manual', unit: 'পজিশন', sort: 'manual', status: 'active' }
+    };
+    if(SafeStorage.getItem('gameConfig_v10')) {
+        const saved = JSON.parse(SafeStorage.getItem('gameConfig_v10'));
+        for(let k in saved) if(gameConfig[k]) Object.assign(gameConfig[k], saved[k]);
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        if(tabId === 'registration') document.getElementById('tab-reg').classList.add('active');
+        if(tabId === 'management') { document.getElementById('tab-mgmt').classList.add('active'); renderMgmt(); }
+        if(tabId === 'results') { document.getElementById('tab-res').classList.add('active'); renderResults(); }
+        if(tabId === 'settings') { 
+            document.getElementById('tab-set').classList.add('active'); 
+            renderSettingsUI(); renderArtSettings(); 
+        }
+        renderPlayerList();
+        
+        if(tabId === 'registration') {
+            document.querySelectorAll('.game-checkbox').forEach(label => {
+                const checkbox = label.querySelector('input');
+                const gameCode = checkbox.value;
+                if(gameConfig[gameCode] && gameConfig[gameCode].status === 'inactive') {
+                    label.style.opacity = '0.4'; label.style.pointerEvents = 'none'; checkbox.disabled = true;
+                    if(!label.innerText.includes('(বন্ধ)')) label.innerHTML += ' <small style="color:red;">(বন্ধ)</small>';
+                } else {
+                    label.style.opacity = '1'; label.style.pointerEvents = 'auto'; checkbox.disabled = false;
+                }
+            });
+        }
+        
+        if(tabId === 'registration') populateClassDropdown();
+    }
+
+    function checkLogin() {
+        const pin = document.getElementById('loginPin').value;
+        if(pin === '12349') { SafeSession.setItem('role', 'admin'); initApp(); }
+        else if(pin === '1234') { SafeSession.setItem('role', 'staff'); initApp(); }
+        else alert('ভুল পিন!');
+    }
+
+    function initApp() {
+        document.getElementById('loginModal').style.display = 'none';
+        const role = SafeSession.getItem('role');
+        if(role === 'staff') {
+            document.getElementById('tab-mgmt').style.display = 'none';
+            document.getElementById('tab-set').style.display = 'none';
+        }
+        document.getElementById('regDate').valueAsDate = new Date();
+        fetchData();
+    }
+
+    // --- Updated Fetch Data (Config Support) ---
+    async function fetchData() {
+        if(!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL")) return;
+        try {
+            let res = await fetch(GOOGLE_SCRIPT_URL);
+            let data = await res.json();
+            
+            // New structure handler
+            if(data.participants) {
+                participants = data.participants;
+                if(data.config) {
+                    if(data.config.gameConfig) {
+                        gameConfig = data.config.gameConfig;
+                        SafeStorage.setItem('gameConfig_v10', JSON.stringify(gameConfig));
+                    }
+                    if(data.config.artConfig) {
+                        artConfig = data.config.artConfig;
+                        SafeStorage.setItem('artConfig_v1', JSON.stringify(artConfig));
+                    }
+                }
+            } else {
+                participants = data; // Legacy
+            }
+        } catch(e) { 
+            participants = JSON.parse(SafeStorage.getItem('db_v8')) || []; 
+        }
+    }
+
+    // --- Robust pushData Function with Retry Logic ---
+    async function pushData(action, payload, retryCount = 0) {
+        // 1. Save to Local Storage first (Backup)
+        if(action === 'register') participants.push(payload.data);
+        else if(action === 'updateScore') {
+            let p = participants.find(x => x.id == payload.id);
+            if(p) { if(!p.scores) p.scores={}; p.scores[payload.gameCode] = payload.score; }
+        }
+        else if(action === 'saveImage') {
+            let p = participants.find(x => x.id == payload.id);
+            if(p) { p.artImage = payload.url; }
+        }
+        else if(action === 'editName') {
+            let p = participants.find(x => x.id == payload.id);
+            if(p) { p.name = payload.newName; }
+        }
+        else if(action === 'deletePlayer') participants = participants.filter(x => x.id !== payload.id);
+        else if(action === 'editPlayer') {
+             let p = participants.find(x => x.id == payload.id);
+             if(p) { p.name = payload.newName; p.games = payload.newGames; }
+        }
+        
+        SafeStorage.setItem('db_v8', JSON.stringify(participants));
+
+        // 2. Send to Server (Backend)
+        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL")) {
+            console.warn("Google Script URL is missing or invalid.");
+            return;
+        }
+
+        const dataToSend = { action: action, ...payload };
+
+        try {
+            // REMOVE HEADERS to prevent Preflight CORS issues
+            // Use simple request format
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                redirect: "follow",
+                body: JSON.stringify(dataToSend)
+            });
+            
+            const result = await response.json();
+            if(result.status === 'success') {
+                console.log("Success:", action);
+            } else {
+                console.error("Server Error:", result.message);
+                if(action !== 'checkUpdates') alert("সার্ভার এরর: " + result.message);
+            }
+        } catch (error) {
+            console.error("Push Error:", error);
+            if (retryCount < 1) {
+                console.log("Retrying pushData...");
+                setTimeout(() => pushData(action, payload, retryCount + 1), 1000);
+            } else {
+                if(action !== 'checkUpdates') alert("ডাটা সার্ভারে সেভ হয়নি! ইন্টারনেট চেক করুন বা স্ক্রিপ্ট পারমিশন (Everyone) আছে কিনা দেখুন।\nError: " + error.message);
+            }
+        }
+    }
+
+    function formatName(name) { return name; }
+
+    function getCustomTransliteration(inputText, googleSuggestion) {
+        const inputWords = inputText.trim().split(/\s+/);
+        const googleWords = googleSuggestion.trim().split(/\s+/);
+        if (inputWords.length !== googleWords.length) return googleSuggestion;
+        const correctedWords = inputWords.map((word, index) => {
+            const lowerWord = word.toLowerCase();
+            if (bengaliSurnameDictionary[lowerWord]) return bengaliSurnameDictionary[lowerWord];
+            return googleWords[index];
+        });
+        return correctedWords.join(" ");
+    }
+
+    document.getElementById('nameInput').addEventListener('input', function() {
+        const val = this.value;
+        if(val.length > 1 && !val.includes('|')) {
+            fetch(`https://inputtools.google.com/request?text=${val}&itc=bn-t-i0-und&num=5`)
+            .then(r=>r.json()).then(d=>{
+                const s = document.getElementById('suggestions');
+                if(d[0] === 'SUCCESS' && d[1] && d[1][0] && d[1][0][1]) {
+                    s.innerHTML = ''; s.style.display = 'block';
+                    const googleTopSuggestion = d[1][0][1][0];
+                    const smartSuggestion = getCustomTransliteration(val, googleTopSuggestion);
+                    
+                    let div = document.createElement('div'); 
+                    div.style.padding='10px'; div.style.fontWeight='bold'; div.style.backgroundColor='#e8f5e9';
+                    div.innerHTML = `<span style="color:#666">${val}</span> | <b>${smartSuggestion}</b> <span style="font-size:10px; color:green">(প্রস্তাবিত)</span>`; 
+                    div.onclick=()=>{ document.getElementById('nameInput').value = `${val} | ${smartSuggestion}`; s.style.display='none'; };
+                    s.appendChild(div);
+
+                    d[1][0][1].forEach(w=>{
+                        if(w !== smartSuggestion) {
+                            let gDiv = document.createElement('div'); 
+                            gDiv.style.padding='10px'; 
+                            gDiv.innerHTML = `<span style="color:#666">${val}</span> | ${w}`; 
+                            gDiv.onclick=()=>{ document.getElementById('nameInput').value = `${val} | ${w}`; s.style.display='none'; };
+                            s.appendChild(gDiv);
+                        }
+                    });
+                }
+            }).catch(e => console.log(e));
+        } else { document.getElementById('suggestions').style.display='none'; }
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('suggestions').contains(e.target) && e.target.id !== 'nameInput') {
+            document.getElementById('suggestions').style.display = 'none';
+        }
+    });
+
+    function populateClassDropdown() {
+        const sel = document.getElementById('artClassSelect');
+        if(sel.options.length > 1) return;
+        CLASS_LIST.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.text = c; sel.appendChild(opt); });
+    }
+
+    function toggleArtFields(checkbox) { document.getElementById('artExtraFields').style.display = checkbox.checked ? 'block' : 'none'; }
+
+    function autoFillArtDetails() {
+        const cls = document.getElementById('artClassSelect').value;
+        const gInfo = getArtGroupInfo(cls);
+        document.getElementById('artGroupDisplay').innerText = gInfo ? gInfo.label : '-';
+        document.getElementById('artConceptDisplay').innerText = gInfo ? gInfo.concept : '-';
+    }
+
+    function getArtGroupInfo(cls) {
+        const idx = CLASS_LIST.indexOf(cls);
+        if(idx === -1) return null;
+        for(let key in artConfig) {
+            const conf = artConfig[key];
+            if(idx >= CLASS_LIST.indexOf(conf.start) && idx <= CLASS_LIST.indexOf(conf.end)) return { key: key, label: conf.label, concept: conf.concept };
+        }
+        return null;
+    }
+
+    async function register() {
+        let name = document.getElementById('nameInput').value;
+        const date = document.getElementById('regDate').value;
+        const games = Array.from(document.querySelectorAll('.game-checkbox input:checked')).map(c=>c.value);
+        if(!name || games.length === 0) return alert("নাম ও খেলা দিন");
+        
+        let artData = {};
+        if(games.includes('art_comp')) {
+            const cls = document.getElementById('artClassSelect').value;
+            const addr = document.getElementById('artAddress').value;
+            const mob = document.getElementById('artMobile').value;
+            if(!cls || !addr || !mob) return alert("অঙ্কন প্রতিযোগিতার তথ্য দিন!");
+            const gInfo = getArtGroupInfo(cls);
+            artData = { class: cls, address: addr, mobile: mob, groupKey: gInfo.key, groupLabel: gInfo.label, concept: gInfo.concept };
+        }
+
+        document.getElementById('regLoader').style.display = 'block';
+        const newPlayer = { id: Date.now(), name, date, games, scores: {}, ...artData };
+        await pushData('register', { data: newPlayer });
+        document.getElementById('regLoader').style.display = 'none';
+        
+        if(games.includes('art_comp')) showArtSlip(newPlayer);
+        else { resetRegForm(); alert("নথিভুক্ত হয়েছে"); }
+    }
+
+    function showArtSlip(p) {
+        document.getElementById('slipRegNo').innerText = p.id;
+        document.getElementById('slipName').innerText = p.name;
+        document.getElementById('slipClass').innerText = p.class;
+        document.getElementById('slipGroup').innerText = p.groupLabel;
+        document.getElementById('slipConcept').innerText = p.concept;
+        document.getElementById('slipAddress').innerText = p.address;
+        
+        const now = new Date();
+        document.getElementById('slipDate').innerText = now.toLocaleDateString('en-GB');
+        document.getElementById('slipTime').innerText = now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+        
+        const qrData = `ID:${p.id}|Name:${p.name}|Group:${p.groupLabel}`;
+        document.getElementById('slipQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrData)}`;
+
+        document.getElementById('artSlipModal').style.display = 'flex';
+    }
+
+    function closeSlipModal() { document.getElementById('artSlipModal').style.display = 'none'; resetRegForm(); }
+
+    function resetRegForm() {
+        document.getElementById('nameInput').value = '';
+        document.querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false);
+        document.getElementById('artExtraFields').style.display = 'none';
+        document.getElementById('artClassSelect').value = '';
+        document.getElementById('artAddress').value = '';
+        document.getElementById('artMobile').value = '';
+    }
+
+    function downloadSlip() {
+        html2canvas(document.getElementById("slipToPrint"), {useCORS: true}).then(canvas => {
+            let link = document.createElement("a");
+            link.download = "Art_Slip_" + document.getElementById('slipName').innerText + ".png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+
+    
+    async function uploadImage(input, id) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        
+        // লেবেল খুঁজে না পেলে এরর যাতে না দেয় তার ব্যবস্থা
+        const label = document.getElementById(`lbl_${id}`);
+        const originalText = label ? label.innerText : "📸 আপলোড";
+        
+        // Step 1: Processing Status
+        if(label) {
+            label.innerText = "প্রসেসিং..."; 
+            label.style.background = "#ffa000";
+        }
+
+        try {
+            // কমপ্রেশন লজিক
+            const compressedBase64 = await compressImage(file);
+            
+            // Step 2: Uploading Status
+            if(label) label.innerText = "আপলোড হচ্ছে...";
+
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL")) {
+                throw new Error("Google Script URL সেট করা হয়নি!");
+            }
+
+            // সার্ভারে পাঠানো
+            const res = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                redirect: "follow",
+                body: JSON.stringify({
+                    action: 'uploadImage',
+                    imageName: `art_${id}_${Date.now()}.jpg`,
+                    imageData: compressedBase64
+                })
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP Error: ${res.status}`);
+            }
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                // ডাটাবেসে সেভ করা
+                await pushData('saveImage', { id: id, url: data.imageUrl });
+                
+                // --- ফিক্স করা অংশ ---
+                // আগে এখানে img.src খোঁজা হতো যা এখন নেই। 
+                // তাই আমরা এখন পুরো টেবিল রিফ্রেশ করবো।
+                renderMgmt(); 
+                alert("✅ ছবি আপলোড সফল হয়েছে!");
+                // -------------------
+
+            } else { throw new Error(data.message); }
+
+        } catch (error) {
+            console.error(error);
+            alert("আপলোড ব্যর্থ!\nকারণ: " + error.message);
+            if(label) {
+                label.innerText = originalText;
+                label.style.background = "#2196f3"; // Reset color
+            }
+        }
+    }
+    
+    
+    
+
+    function compressImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    
+                    // SAFE LIMIT: 800px ensures payload stays well under GAS limits
+                    const MAX_WIDTH = 800; 
+                    
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Quality 0.4 for very small size (<50KB target)
+                    resolve(canvas.toDataURL('image/jpeg', 0.4)); 
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    }
+
+    function renderMgmt() {
+        const game = document.getElementById('mgmtGameSelector').value;
+        const search = document.getElementById('mgmtSearch').value.toLowerCase();
+        const area = document.getElementById('mgmtArea');
+        area.innerHTML = '';
+        
+        if(!game) return;
+        
+        if(gameConfig[game] && gameConfig[game].status === 'inactive') {
+            alert("এই খেলাটির পরিসমাপ্তি হয়েছে। ফলাফল দেখুন।");
+            document.getElementById('mgmtGameSelector').value = ""; 
+            switchTab('results'); 
+            document.getElementById('resGameSelector').value = game; 
+            renderResults();
+            return;
+        }
+
+        const artFilterDiv = document.getElementById('artSubFilterDiv');
+        artFilterDiv.style.display = (game === 'art_comp') ? 'block' : 'none';
+
+        let players = participants.filter(p => p.games.includes(game) && p.name.toLowerCase().includes(search));
+        
+        if(game === 'musical_chair') renderMusicalChairMgmt(players, area);
+        else if(game === 'sajo') renderSajoMgmt(players, area);
+        else if(game === 'art_comp') renderArtMgmt(players, area);
+        else renderStandardMgmt(players, area, game);
+    }
+
+
+function renderArtMgmt(players, container) {
+        const filterGroup = document.getElementById('artGroupFilter').value;
+        if(filterGroup !== 'all') players = players.filter(p => p.groupKey === filterGroup);
+
+        let table = `<table width="100%">`;
+        players.forEach((p, i) => {
+            const sc = (p.scores && p.scores['art_comp']) ? p.scores['art_comp'] : '';
+            
+            // ছবি থাকলে প্রিভিউ দেখাবে, না থাকলে আইকন
+            let imgDisplay = p.artImage 
+                ? `<img src="${p.artImage}" style="max-width:50px; max-height:50px; border-radius:4px; border:1px solid #ccc;">` 
+                : `<span style="font-size:30px; color:#ddd;">🖼️</span>`;
+
+            let control = '';
+            if(sc) {
+                control = `
+                    <div style="font-weight:bold; color:green; font-size:16px;">${sc}</div> 
+                    <button class="btn-sm btn-edit" onclick="setRank(${p.id}, 'art_comp', '')">Reset</button>
+                `;
+            } else {
+                control = `
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        
+                        <button id="cam_btn_${p.id}" onclick="openCamera(${p.id})" style="padding:8px; background:#2196f3; color:white; border:none; border-radius:4px; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                            📷 ছবি তুলুন
+                        </button>
+
+                        <div style="margin-top:5px;">
+                            <button class="btn-sm btn-1st" onclick="setRank(${p.id}, 'art_comp', '1st')">১ম</button>
+                            <button class="btn-sm btn-2nd" onclick="setRank(${p.id}, 'art_comp', '2nd')">২য়</button>
+                            <button class="btn-sm btn-3rd" onclick="setRank(${p.id}, 'art_comp', '3rd')">৩য়</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const details = `<small style="color:gray;">${p.groupLabel || '-'} (${p.class || ''})</small>`;
+            table += `<tr>
+                <td style="width:30px;">${i+1}</td>
+                <td onclick="openPlayerDetails(${p.id})" style="cursor:pointer; color:var(--primary-color);">
+                    <div style="font-weight:600; text-decoration:underline;">${p.name}</div>
+                    ${details}
+                </td>
+                <td style="text-align:center;">${control}</td>
+            </tr>`;
+        });
+        container.innerHTML = table + `</table>`;
+    }
+
+
+
+    function renderStandardMgmt(players, container, game) {
+        const conf = gameConfig[game];
+        let table = `<table width="100%">`;
+        players.forEach((p, i) => {
+            const sc = (p.scores && p.scores[game]) ? p.scores[game] : '';
+            let control = sc ? 
+                `<span style="font-weight:bold; color:green;">${sc}</span> <button class="btn-sm btn-edit" onclick="editScore(${p.id}, '${game}', '${sc}')">✏️</button> <button class="btn-sm btn-replay" onclick="resetScore(${p.id}, '${game}')">🔄</button>` 
+                : (conf.type !== 'manual' ? `<button class="btn-sm" style="background:#2196f3;" onclick="openTimer(${p.id}, '${p.name}', '${game}')">⏱️</button>` : `<input type="number" id="in_${p.id}" style="width:60px;" placeholder="${conf.unit}"> <button class="btn-sm" style="background:#4caf50" onclick="manualSave(${p.id}, '${game}')">💾</button>`);
+            table += `<tr><td>${i+1}</td><td>${p.name}</td><td>${control}</td></tr>`;
+        });
+        container.innerHTML = table + `</table>`;
+    }
+    
+    function renderMusicalChairMgmt(players, container) {
+        const active = players.filter(p => !p.scores || !p.scores['musical_chair']);
+        const outPlayers = players.filter(p => p.scores && p.scores['musical_chair']);
+        let table = `<div style="background:#e0f7fa; padding:10px;">বাকি: <b>${active.length}</b></div><table>`;
+        active.forEach((p, i) => {
+            let btns = active.length > 3 ? `<button class="btn-sm btn-out" onclick="setRank(${p.id}, 'musical_chair', 'out')">বাদ</button>` : (active.length===3 ? `<button class="btn-sm btn-3rd" onclick="setRank(${p.id}, 'musical_chair', '3rd')">৩য়</button><button class="btn-sm btn-out" onclick="setRank(${p.id}, 'musical_chair', 'out')">বাদ</button>` : `<button class="btn-sm btn-1st" onclick="setRank(${p.id}, 'musical_chair', '1st')">১ম</button><button class="btn-sm btn-2nd" onclick="setRank(${p.id}, 'musical_chair', '2nd')">২য়</button>`);
+            table += `<tr><td>${i+1}</td><td>${p.name}</td><td>${btns}</td></tr>`;
+        });
+        outPlayers.forEach(p => table += `<tr style="background:#ffebee; color:#888;"><td>-</td><td>${p.name} (${p.scores['musical_chair']})</td><td><button class="btn-sm btn-undo" onclick="setRank(${p.id}, 'musical_chair', '')">ফেরত</button></td></tr>`);
+        container.innerHTML = table + `</table>`;
+    }
+
+    function renderSajoMgmt(players, container) {
+        let table = `<table><tr><th>নাম</th><th>বিবরণ ও ফলাফল</th></tr>`;
+        players.forEach(p => {
+            const sc = (p.scores && p.scores['sajo']) ? p.scores['sajo'] : '';
+            table += `<tr><td>${p.name}</td><td>${sc ? `<b>${sc.split('#')[0]}</b> - ${sc.split('#')[1]} (${sc.split('#')[2]}) <button class="btn-sm" style="background:#607d8b" onclick="setRank(${p.id}, 'sajo', '')">Reset</button>` : `<input type="text" id="sajo_c_${p.id}" placeholder="কন্টেন্ট" style="width:100px;"> <input type="number" id="sajo_m_${p.id}" placeholder="নম্বর" style="width:50px;"> <button class="btn-sm btn-1st" onclick="saveSajo(${p.id}, '1st')">১ম</button><button class="btn-sm btn-2nd" onclick="saveSajo(${p.id}, '2nd')">২য়</button><button class="btn-sm btn-3rd" onclick="saveSajo(${p.id}, '3rd')">৩য়</button>`}</td></tr>`;
+        });
+        container.innerHTML = table + `</table>`;
+    }
+
+    async function manualSave(id, game) { const val = document.getElementById(`in_${id}`).value; if(val) { await pushData('updateScore', { id, gameCode: game, score: val }); renderMgmt(); } }
+    async function setRank(id, game, rank) { await pushData('updateScore', { id, gameCode: game, score: rank }); renderMgmt(); }
+    async function saveSajo(id, rank) { const c = document.getElementById(`sajo_c_${id}`).value, m = document.getElementById(`sajo_m_${id}`).value; if(c && m) { await pushData('updateScore', { id, gameCode: 'sajo', score: `${rank}#${c}#${m}` }); renderMgmt(); } }
+    async function editScore(id, game, oldVal) { const newVal = prompt("নতুন স্কোর:", oldVal); if(newVal && newVal !== oldVal) { await pushData('updateScore', { id, gameCode: game, score: newVal }); renderMgmt(); } }
+    async function resetScore(id, game) { if(confirm("মুছে আবার খেলবেন?")) { await pushData('updateScore', { id, gameCode: game, score: "" }); renderMgmt(); } }
+
+    let timerInt, running = false, timerData = null, elapsedTime = 0;
+    function formatTime(ms) { if(isNaN(ms)||ms<0)return "00:00:00.00"; let m=Math.floor((ms/(1000*60))%60),s=Math.floor((ms/1000)%60),mil=Math.floor((ms%1000)/10); return `00:${m<10?'0'+m:m}:${s<10?'0'+s:s}:${mil<10?'0'+mil:mil}`; }
+    function openTimer(id, name, game) { const conf=gameConfig[game], dur=parseInt(conf.duration)||60; timerData={id,game,type:conf.type,limit:dur*1000}; document.getElementById('timerModal').style.display='flex'; document.getElementById('timerPlayerName').innerText=name; document.getElementById('timerGameLabel').innerText=conf.label; document.getElementById('waterInputDiv').style.display=(game==='glass_circle')?'block':'none'; document.getElementById('scoreInputLabel').innerText=(conf.type==='fixed')?"কয়টি খেলো?":"ফলাফল"; document.getElementById('finalScoreInput').value=''; document.getElementById('waterAmount').value=''; resetTimer(); }
+    function resetTimer() { clearInterval(timerInt); running=false; elapsedTime=0; document.getElementById('timerDisplay').innerText=(timerData.type==='fixed')?formatTime(timerData.limit):"00:00:00.00"; document.getElementById('mainControls').style.display='flex'; document.getElementById('pausedControls').style.display='none'; document.getElementById('btnStart').style.display='inline-block'; document.getElementById('btnPause').style.display='none'; }
+    function startTimer() { if(running)return; running=true; document.getElementById('btnStart').style.display='none'; document.getElementById('btnPause').style.display='inline-block'; document.getElementById('mainControls').style.display='flex'; document.getElementById('pausedControls').style.display='none'; const start=Date.now(), initial=(timerData.type==='fixed')?(timerData.limit-elapsedTime):elapsedTime; timerInt=setInterval(()=>{ const now=Date.now(), delta=now-start; let current=(timerData.type==='fixed')?(initial-delta):(initial+delta); elapsedTime=(timerData.type==='fixed')?(timerData.limit-current):current; if(current<=0 && timerData.type==='fixed'){current=0; pauseTimer(); if(navigator.vibrate)navigator.vibrate(500);} document.getElementById('timerDisplay').innerText=formatTime(current); },30); }
+    function pauseTimer() { clearInterval(timerInt); running=false; document.getElementById('mainControls').style.display='none'; document.getElementById('pausedControls').style.display='block'; if(timerData.game!=='glass_circle'&&timerData.type!=='fixed')document.getElementById('finalScoreInput').value=document.getElementById('timerDisplay').innerText; if(timerData.type==='fixed')document.getElementById('finalScoreInput').focus(); }
+    function resumeTimer() { startTimer(); }
+    async function saveTimerData() { let val=(timerData.game==='glass_circle')?`${document.getElementById('timerDisplay').innerText} | ${document.getElementById('waterAmount').value||0}ml`:document.getElementById('finalScoreInput').value; if(!val)return alert("ফলাফল দিন"); await pushData('updateScore',{id:timerData.id,gameCode:timerData.game,score:val}); closeTimer(); renderMgmt(); }
+    function closeTimer() { clearInterval(timerInt); document.getElementById('timerModal').style.display='none'; }
+
+   function renderResults() {
+        const game = document.getElementById('resGameSelector').value;
+        const tbody = document.getElementById('resBody');
+        tbody.innerHTML = '';
+        document.getElementById('artResSubFilterDiv').style.display = (game === 'art_comp') ? 'block' : 'none';
+        if(!game) return;
+
+        const conf = gameConfig[game];
+        
+        // ১. ফিল্টার লজিক পরিবর্তন: স্কোর থাকলে অথবা (অঙ্কন হলে এবং ছবি থাকলে) লিস্টে আসবে
+        let list = participants.filter(p => {
+            const hasScore = p.scores && p.scores[game];
+            const hasImage = (game === 'art_comp' && p.artImage);
+            return hasScore || hasImage;
+        });
+
+        if(game === 'art_comp') {
+             const filter = document.getElementById('artResGroupFilter').value;
+             if(filter !== 'all') list = list.filter(p => p.groupKey === filter);
+        }
+
+        document.getElementById('resTitle').innerText = conf.label + " - চূড়ান্ত তালিকা";
+        
+        // ২. সর্টিং লজিক (যাদের স্কোর নেই তাদের নিচে রাখা হবে)
+        list.sort((a, b) => {
+            let sa = (a.scores && a.scores[game]) ? a.scores[game] : '';
+            let sb = (b.scores && b.scores[game]) ? b.scores[game] : '';
+
+            // যদি স্কোর না থাকে, তাকে শেষে পাঠাও
+            if(!sa && !sb) return 0;
+            if(!sa) return 1; 
+            if(!sb) return -1;
+
+            if(game === 'musical_chair' || game === 'sajo' || game === 'art_comp') {
+                const rankMap = { '1st':1, '2nd':2, '3rd':3 };
+                const ra = (sa.includes('#') ? sa.split('#')[0] : sa).toLowerCase();
+                const rb = (sb.includes('#') ? sb.split('#')[0] : sb).toLowerCase();
+                // ম্যাপে না থাকলে (যেমন 4th বা অন্য কিছু) তাকে নিচে রাখো (99)
+                return (rankMap[ra] || 99) - (rankMap[rb] || 99);
+            }
+            if(game === 'glass_circle') return sa.split('|')[0].trim().localeCompare(sb.split('|')[0].trim());
+            if(game === 'shankha') return sb.localeCompare(sa);
+            return (conf.sort === 'low') ? (parseFloat(sa)-parseFloat(sb)) : (parseFloat(sb)-parseFloat(sa));
+        });
+
+        // ৩. টেবিল রেন্ডারিং
+        list.forEach((p, i) => {
+            let displayScore = (p.scores && p.scores[game]) ? p.scores[game] : '';
+            let rankDisplay = (i+1) + "।"; 
+            let rowStyle = "";
+            let isWinner = false;
+            let badgeIcon = ""; // মেডেল বা স্ট্যাটাস লোগো
+
+            // ফরম্যাটিং
+            if(displayScore && game === 'hari_bhanga') displayScore += " সেমি";
+            if(displayScore && (game === 'candle' || game === 'phuchka')) displayScore += " টি";
+            if(displayScore && game === 'glass_circle') displayScore = `সময় ${displayScore.split('|')[0]}`;
+            
+            // সাজো লজিক
+            if(game === 'sajo' && displayScore) {
+                const parts = displayScore.split('#');
+                if(parts.length > 1) {
+                    const rank = parts[0];
+                    if(rank === '1st') { rankDisplay = '১।'; isWinner = true; badgeIcon = '🥇'; }
+                    else if(rank === '2nd') { rankDisplay = '২।'; isWinner = true; badgeIcon = '🥈'; }
+                    else if(rank === '3rd') { rankDisplay = '৩।'; isWinner = true; badgeIcon = '🥉'; }
+                    displayScore = `${parts[1]} (${parts[2]} নম্বর)`;
+                }
+            }
+
+            // অঙ্কন ও মিউজিক্যাল চেয়ার লজিক
+            if((game === 'musical_chair' || game === 'art_comp') && displayScore) {
+                if(displayScore === '1st') { rankDisplay = '১।'; isWinner = true; badgeIcon = '🥇'; }
+                else if(displayScore === '2nd') { rankDisplay = '২।'; isWinner = true; badgeIcon = '🥈'; }
+                else if(displayScore === '3rd') { rankDisplay = '৩।'; isWinner = true; badgeIcon = '🥉'; }
+                else { rankDisplay = (i+1) + "।"; } // র‍্যাঙ্ক নেই কিন্তু ছবি আছে
+            }
+
+            // যদি স্কোর না থাকে কিন্তু ছবি থাকে (অংশগ্রহণ করেছে)
+            if(!displayScore && game === 'art_comp' && p.artImage) {
+                 rankDisplay = '-';
+                 displayScore = '<small style="color:gray">অংশগ্রহণকারী</small>';
+            }
+
+            // স্টাইল সেট করা
+            if(isWinner) {
+                if(displayScore === '1st') rowStyle = "background:#fff9c4; font-weight:bold;";
+                if(displayScore === '2nd') rowStyle = "background:#f5f5f5; font-weight:bold;";
+                if(displayScore === '3rd') rowStyle = "background:#ffe0b2; font-weight:bold;";
+            }
+
+            // অ্যাকশন বাটন তৈরি (ফলাফল কলামের জন্য)
+            let actionButtons = `<div style="display:flex; align-items:center; gap:5px;">`;
+            
+            // ১. স্ট্যাটাস লোগো (Badge)
+            if(badgeIcon) actionButtons += `<span style="font-size:20px;">${badgeIcon}</span>`;
+            else actionButtons += `<span style="font-weight:bold; font-size:14px;">${displayScore}</span>`;
+
+            // ২. সার্টিফিকেট লোগো
+            if(game === 'art_comp' && isWinner) {
+                actionButtons += `<button onclick="generateCertificate(${p.id}, '${displayScore}')" style="background:none; border:none; font-size:20px; cursor:pointer;" title="সার্টিফিকেট">🎖️</button>`;
+            }
+
+            // ৩. চোখের চিহ্ন (ছবি প্রিভিউ) - শুধুমাত্র ছবি থাকলে
+            if(game === 'art_comp' && p.artImage) {
+                actionButtons += `<button onclick="viewResultImage('${p.artImage}', '${p.name}')" style="background:none; border:none; font-size:20px; cursor:pointer;" title="ছবি দেখুন">👁️</button>`;
+            }
+            actionButtons += `</div>`;
+
+            // নামের কলামে অতিরিক্ত তথ্য
+            let nameDetails = p.name;
+            if(game === 'art_comp') nameDetails += `<br><small style='color:gray'>${p.groupLabel}, শ্রেণী: ${p.class}</small>`;
+
+            tbody.innerHTML += `<tr style="${rowStyle}">
+                <td>${rankDisplay}</td>
+                <td>${nameDetails}</td>
+                <td>${actionButtons}</td>
+            </tr>`;
+        });
+        
+        if(list.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">কোনো ফলাফল নেই</td></tr>';
+    }
+
+    function generateCertificate(id, rank) {
+        const p = participants.find(x => x.id == id);
+        if(!p) return;
+
+        const nameParts = p.name.split('|');
+        const certName = nameParts.length > 1 ? nameParts[1].trim() : nameParts[0].trim();
+
+        document.getElementById('certName').innerText = certName;
+        document.getElementById('certRankText').innerText = rank + " Position";
+        document.getElementById('certBadge').innerText = rank;
+        document.getElementById('certBadge').style.background = rank === '1st' ? '#FFD700' : (rank === '2nd' ? '#C0C0C0' : '#CD7F32');
+        document.getElementById('certGroup').innerText = p.groupLabel;
+        document.getElementById('certClass').innerText = p.class;
+        
+        const cert = document.getElementById('certTemplate');
+        cert.style.display = 'block';
+        cert.style.position = 'fixed';
+        cert.style.top = '0';
+        cert.style.left = '0';
+        cert.style.zIndex = '10000';
+
+        html2canvas(cert).then(canvas => {
+            let link = document.createElement("a");
+            link.download = `Certificate_${certName}_${rank}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            cert.style.display = 'none'; cert.style.top = '-9999px'; cert.style.left = '-9999px';
+        });
+    }
+
+    function renderSettingsUI() {
+        const div = document.getElementById('settingsList'); div.innerHTML = '';
+        for(let k in gameConfig) {
+            const g = gameConfig[k], rowBg = g.status === 'inactive' ? '#ffebee' : 'transparent', statusColor = g.status === 'active' ? '#2e7d32' : '#c62828';
+            div.innerHTML += `<div style="padding:15px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; background: ${rowBg};"><div><div style="font-weight:bold; font-size:16px;">${g.label}</div><div style="font-size:12px; color:${statusColor}; font-weight:600;">${g.status==='active'?'● চালু আছে':'● বন্ধ'}</div></div><div style="display:flex; align-items:center; gap:8px;">${g.type==='fixed'?`<input type="number" value="${g.duration||60}" style="width:50px; padding:3px;" onchange="updateConfig('${k}','duration',this.value)">`:''} <select onchange="updateConfig('${k}','status',this.value)" style="border:1px solid ${statusColor};"><option value="active" ${g.status=='active'?'selected':''}>Active</option><option value="inactive" ${g.status=='inactive'?'selected':''}>Inactive</option></select></div></div>`;
+        }
+    }
+
+    function renderArtSettings() {
+        const container = document.getElementById('artSettingsContainer'); container.innerHTML = '';
+        const getClassOptions = (sel) => CLASS_LIST.map(c => `<option value="${c}" ${c===sel?'selected':''}>${c}</option>`).join('');
+        for(let key in artConfig) {
+            const grp = artConfig[key];
+            container.innerHTML += `<div class="art-settings-row"><strong style="color:var(--primary-color)">${grp.label}</strong><div style="display:flex; gap:5px; margin-top:5px;"><select onchange="updateArtConfig('${key}','start',this.value)" style="flex:1;">${getClassOptions(grp.start)}</select> থেকে <select onchange="updateArtConfig('${key}','end',this.value)" style="flex:1;">${getClassOptions(grp.end)}</select></div><input type="text" value="${grp.concept}" onchange="updateArtConfig('${key}','concept',this.value)" style="margin-top:5px;"></div>`;
+        }
+    }
+
+    function updateArtConfig(k, f, v) { artConfig[k][f] = v; }
+    
+    // --- UPDATED SAVE SETTINGS (Now sends to server) ---
+    async function saveArtConfig() { 
+        SafeStorage.setItem('artConfig_v1', JSON.stringify(artConfig)); 
+        await pushData('saveConfig', { artConfig: artConfig });
+        alert("অঙ্কন কনফিগারেশন সেভ হয়েছে (Local + Server)!"); 
+    }
+    
+    function updateConfig(g, k, v) { if(k==='duration')v=parseInt(v); gameConfig[g][k]=v; SafeStorage.setItem('gameConfig_v10', JSON.stringify(gameConfig)); if(k==='type')renderSettingsUI(); }
+    
+    // --- UPDATED SAVE GAME CONFIG (Now sends to server) ---
+    async function saveConfig() { 
+        SafeStorage.setItem('gameConfig_v10', JSON.stringify(gameConfig)); 
+        await pushData('saveConfig', { gameConfig: gameConfig });
+        alert('খেলার সেটিং সেভ হয়েছে (Local + Server)!'); 
+    }
+    
+    function renderPlayerList() {
+        const search = document.getElementById('settingSearch').value.toLowerCase();
+        const container = document.getElementById('playerMgmtList'); container.innerHTML = '';
+        const list = participants.filter(p => p.name.toLowerCase().includes(search));
+        const displayList = search ? list : list.slice().reverse().slice(0, 10);
+
+        if(displayList.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:gray;">কোনো নাম পাওয়া যায়নি</p>';
+            return;
+        }
+
+        displayList.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'player-row';
+            div.innerHTML = `<span class="player-name" onclick="showPlayerGames(${p.id})" title="বিস্তারিত">${p.name} <small style="color:gray; font-size:10px;">(ID: ${p.id})</small></span><div><button class="btn-sm btn-edit-name" onclick="editParticipantName(${p.id}, '${p.name}')">✏️</button><button class="btn-sm btn-del" onclick="deleteParticipant(${p.id})">🗑️</button></div>`;
+            container.appendChild(div);
+        });
+    }
+
+    // New safe function to show games
+    function showPlayerGames(id) {
+        const p = participants.find(x => x.id == id);
+        if(!p) return;
+        const gamesList = p.games || [];
+        const gameNames = gamesList.map(g => {
+            return gameConfig[g] ? `✅ ${gameConfig[g].label}` : g;
+        }).join('\n');
+        alert(`খেলোয়াড়: ${p.name}\n\nঅংশগ্রহণকারী খেলাসমূহ:\n----------------------\n${gameNames || 'কোনো খেলা নেই'}`);
+    }
+
+    let currentEditId = null;
+    function editParticipantName(id) {
+        const p = participants.find(x => x.id == id); if(!p)return; currentEditId=id; document.getElementById('editNameInput').value=p.name;
+        const c=document.getElementById('editGamesContainer'); c.innerHTML='';
+        for(let k in gameConfig) { const chk=p.games.includes(k)?'checked':''; if(gameConfig[k].status==='active'||chk) c.innerHTML+=`<label class="game-checkbox"><input type="checkbox" value="${k}" ${chk}> ${gameConfig[k].label}</label>`; }
+        document.getElementById('editModal').style.display='flex';
+    }
+    async function saveEditData() {
+        if(!currentEditId)return;
+        const n=document.getElementById('editNameInput').value, g=Array.from(document.querySelectorAll('#editGamesContainer input:checked')).map(c=>c.value);
+        if(!n||g.length===0)return alert("ভুল তথ্য");
+        await pushData('editPlayer',{id:currentEditId,newName:formatName(n),newGames:g}); document.getElementById('editModal').style.display='none'; renderPlayerList(); alert("সংশোধন হয়েছে!");
+    }
+    async function deleteParticipant(id) { if(confirm("ডিলিট করবেন?")) { await pushData('deletePlayer',{id}); renderPlayerList(); } }
+
+    let lastKnownTime = Date.now(), isFirstCheck = true;
+    setInterval(checkForNewScores, 8000);
+    async function checkForNewScores() {
+        if(!document.getElementById('results').classList.contains('active') || !GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL")) return;
+        try { const res = await fetch(GOOGLE_SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'checkUpdates'})}); const data = await res.json();
+            if(data.time > lastKnownTime) { lastKnownTime=data.time; if(!isFirstCheck){ document.getElementById('notifSound').play().catch(e=>{}); showToast(data.msg); renderResults(); } } isFirstCheck=false;
+        } catch(e){}
+    }
+    function showToast(m) { let t=document.createElement("div"); t.innerText=m; Object.assign(t.style,{position:"fixed",bottom:"20px",right:"20px",background:"#333",color:"#fff",padding:"15px",borderRadius:"5px",zIndex:"10000"}); document.body.appendChild(t); setTimeout(()=>{t.remove()},5000); }
+    async function manualRefresh(b) { b.innerText="..."; try{await fetchData(); renderMgmt(); renderResults(); alert("আপডেট হয়েছে");}catch(e){alert("Error");} b.innerText="🔄 ডাটা রিফ্রেশ"; }
+    function doLogout() { if(confirm("লগআউট?")) { SafeSession.clear(); location.reload(); } }
+    if(SafeSession.getItem('role')) checkLogin();
+    
+// --- New Functions for Detailed Popup & Image Management ---
+
+    function openPlayerDetails(id) {
+        const p = participants.find(x => x.id == id);
+        if(!p) return;
+
+        // Populate Data
+        document.getElementById('detId').innerText = p.id;
+        document.getElementById('detName').innerText = p.name;
+        document.getElementById('detMobile').innerText = p.mobile || '-';
+        document.getElementById('detMobile').href = p.mobile ? `tel:${p.mobile}` : '#';
+        document.getElementById('detAddress').innerText = p.address || '-';
+        document.getElementById('detClass').innerText = p.class || '-';
+        document.getElementById('detGroup').innerText = p.groupLabel || '-';
+        document.getElementById('detConcept').innerText = p.concept || '-';
+        
+        // Status Logic
+        const rank = (p.scores && p.scores['art_comp']) ? p.scores['art_comp'] : 'ফলাফল হয়নি';
+        document.getElementById('detStatus').innerText = rank;
+
+        // Image Icon Logic
+        const eyeIcon = document.getElementById('detImgIcon');
+        if(p.artImage) {
+            eyeIcon.style.display = 'inline-block';
+            eyeIcon.onclick = function() { showFullImage(p.id, p.artImage, p.name); };
+        } else {
+            eyeIcon.style.display = 'none';
+        }
+
+        document.getElementById('playerDetailsModal').style.display = 'flex';
+    }
+
+    function showFullImage(id, url, name) {
+        const modal = document.getElementById('imgPreviewModal');
+        const img = document.getElementById('fullSizeImg');
+        const dlBtn = document.getElementById('downloadImgBtn');
+        const delBtn = document.getElementById('deleteImgBtn');
+
+        img.src = url;
+        
+        // Setup Download
+        dlBtn.href = url;
+        dlBtn.download = `Art_${name}_${id}.jpg`;
+        
+        // Setup Delete
+        delBtn.onclick = function() { deletePlayerImage(id); };
+
+        modal.style.display = 'flex';
+    }
+
+    async function deletePlayerImage(id) {
+        if(!confirm("আপনি কি নিশ্চিত ছবিটা ডিলিট করতে চান? ড্রাইভ থেকেও মুছে যেতে পারে।")) return;
+
+        const delBtn = document.getElementById('deleteImgBtn');
+        delBtn.innerText = "মুছছে...";
+        delBtn.disabled = true;
+
+        // 1. Update Local Data (Remove Image URL)
+        let p = participants.find(x => x.id == id);
+        if(p) { p.artImage = ""; } // Clear locally
+
+        // 2. Send request to server to overwrite image with empty string
+        try {
+            await pushData('saveImage', { id: id, url: '' });
+            
+            alert("ছবি ডিলিট করা হয়েছে। এখন নতুন ছবি আপলোড করুন।");
+            document.getElementById('imgPreviewModal').style.display = 'none';
+            document.getElementById('playerDetailsModal').style.display = 'none';
+            renderMgmt(); // Refresh list to show upload button again
+        } catch(e) {
+            alert("ডিলিট করতে সমস্যা হয়েছে।");
+        } finally {
+            delBtn.innerText = "🗑️ ডিলিট";
+            delBtn.disabled = false;
+        }
+    }    
+    
+  // ম্যানেজমেন্ট ট্যাবের জন্য (ডিলিট বাটনসহ)
+    function showFullImage(id, url, name) {
+        const modal = document.getElementById('imgPreviewModal');
+        document.getElementById('fullSizeImg').src = url;
+        
+        const dlBtn = document.getElementById('downloadImgBtn');
+        dlBtn.href = url;
+        dlBtn.download = `Art_${name}_${id}.jpg`;
+        
+        // ডিলিট বাটন দেখাও
+        const delBtn = document.getElementById('deleteImgBtn');
+        delBtn.style.display = 'inline-block'; 
+        delBtn.onclick = function() { deletePlayerImage(id); };
+
+        modal.style.display = 'flex';
+    }
+
+    // ফলাফল ট্যাবের জন্য (ডিলিট বাটন ছাড়া)
+    function viewResultImage(url, name) {
+        const modal = document.getElementById('imgPreviewModal');
+        document.getElementById('fullSizeImg').src = url;
+        
+        const dlBtn = document.getElementById('downloadImgBtn');
+        dlBtn.href = url;
+        dlBtn.download = `Art_${name}_Result.jpg`;
+        
+        // ডিলিট বাটন লুকাও
+        document.getElementById('deleteImgBtn').style.display = 'none';
+
+        modal.style.display = 'flex';
+    }  
+      
+    
+</script>
+</body>
+</html>
