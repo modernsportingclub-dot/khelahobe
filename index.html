@@ -717,23 +717,20 @@
         if (!input.files || !input.files[0]) return;
         const file = input.files[0];
         
-        // লেবেল খুঁজে না পেলে এরর যাতে না দেয় তার ব্যবস্থা
+        // আমরা লেবেল খুঁজে বের করছি
         const label = document.getElementById(`lbl_${id}`);
-        const originalText = label ? label.innerText : "📸 আপলোড";
         
-        // Step 1: Processing Status
+        // ১. লোডিং স্টাইল: আমরা টেক্সট পাল্টাবো না, শুধু রঙ পাল্টাবো যাতে বাটন নষ্ট না হয়
         if(label) {
-            label.innerText = "প্রসেসিং..."; 
-            label.style.background = "#ffa000";
+            label.style.background = "#ffa000"; // হলুদ রঙ (বোঝাবে কাজ চলছে)
+            label.style.opacity = "0.7";
+            label.style.pointerEvents = "none"; // আপলোড চলাকালীন আবার ক্লিক করা যাবে না
         }
 
         try {
             // কমপ্রেশন লজিক
             const compressedBase64 = await compressImage(file);
             
-            // Step 2: Uploading Status
-            if(label) label.innerText = "আপলোড হচ্ছে...";
-
             if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL")) {
                 throw new Error("Google Script URL সেট করা হয়নি!");
             }
@@ -759,21 +756,21 @@
                 // ডাটাবেসে সেভ করা
                 await pushData('saveImage', { id: id, url: data.imageUrl });
                 
-                // --- ফিক্স করা অংশ ---
-                // আগে এখানে img.src খোঁজা হতো যা এখন নেই। 
-                // তাই আমরা এখন পুরো টেবিল রিফ্রেশ করবো।
+                // সফল হলে লিস্ট রিফ্রেশ হবে
                 renderMgmt(); 
                 alert("✅ ছবি আপলোড সফল হয়েছে!");
-                // -------------------
 
             } else { throw new Error(data.message); }
 
         } catch (error) {
             console.error(error);
             alert("আপলোড ব্যর্থ!\nকারণ: " + error.message);
+            
+            // ফেইল করলে আগের অবস্থায় ফেরত
             if(label) {
-                label.innerText = originalText;
-                label.style.background = "#2196f3"; // Reset color
+                label.style.background = ""; // আগের রঙ
+                label.style.opacity = "1";
+                label.style.pointerEvents = "auto";
             }
         }
     }
@@ -867,10 +864,14 @@
             } else {
                 control = `
                     <div style="display:flex; flex-direction:column; gap:5px;">
-                        <label class="photo-upload-label" id="lbl_${p.id}">
-                            📸 আপলোড
-                            <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="uploadImage(this, ${p.id})">
-                        </label>
+                        <label class="photo-upload-label" id="lbl_${p.id}" style="position: relative; overflow: hidden;">
+    📷 আপলোড
+    <input type="file" 
+           accept="image/*" 
+           capture="environment" 
+           style="position: absolute; top: 0; left: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;" 
+           onchange="uploadImage(this, ${p.id})">
+</label>
                         <div style="margin-top:5px;">
                             <button class="btn-sm btn-1st" onclick="setRank(${p.id}, 'art_comp', '1st')">১ম</button>
                             <button class="btn-sm btn-2nd" onclick="setRank(${p.id}, 'art_comp', '2nd')">২য়</button>
@@ -1426,3 +1427,4 @@
 </script>
 </body>
 </html>
+
